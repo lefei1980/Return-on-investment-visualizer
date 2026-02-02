@@ -13,3 +13,4 @@
 | # | Task | Status |
 |---|------|--------|
 | D1 | GitHub Pages deployment via GitHub Actions | Done |
+| D2 | Vercel deployment (primary) | Done |
