@@ -1,0 +1,367 @@
+Return-on-investment Visualizer – High‑Level Project Plan
+1. Purpose & Motivation
+Background Story (Why this exists)
+
+This project is motivated by a real family experience:
+
+A long‑held belief that rental real estate, while more work, would outperform stock market investing
+
+In hindsight, low‑cost stock market investing (e.g. S&P 500) would have delivered higher returns with far less effort, risk, and stress
+
+The tool aims to make these long‑term tradeoffs visible ex‑ante, using transparent assumptions and interactive visualization.
+
+Primary Goals
+
+Help users compare long‑term outcomes of different investment choices
+
+Make assumptions explicit (returns, costs, leverage, effort)
+
+Provide an educational, exploratory experience, not financial advice
+
+Serve as a practice project for AI‑assisted development (e.g. Claude Code)
+
+2. Target User & Product Philosophy
+Target User
+
+Thoughtful retail investors
+
+Families comparing real estate vs stocks
+
+Users comfortable with numbers but not professional finance software
+
+Product Philosophy
+
+Transparency over precision
+
+Simple deterministic models first
+
+Progressive complexity
+
+Easy to validate results
+
+North‑star principle:
+
+Show how compounding, costs, and effort dominate long‑term outcomes.
+
+3. Core Product Features (MVP)
+3.1 Landing & Introduction
+
+Brief explanation of:
+
+What the tool does
+
+What it does not do (no advice, simplified assumptions)
+
+Clear call‑to‑action: “Add an investment”
+
+3.2 Investment Object System
+Investment Creation
+
+"+ Add investment" button
+
+Clicking opens:
+
+Asset type dropdown
+
+Supported MVP asset types:
+
+Security (stock / fund)
+
+Rental property
+
+Automatic Naming
+
+Default names:
+
+"Security #1"
+
+"Rental Property #1"
+
+Editable by user
+
+Warn (not block) on duplicate names
+
+3.3 Asset‑Specific Input Forms
+Common Design Principles
+
+Inputs organized as collapsible cards
+
+Basic inputs shown by default
+
+Advanced inputs hidden behind toggle
+
+Inline tooltips explaining assumptions
+
+3.3.1 Security (Stock / Fund)
+
+Basic Inputs
+
+Asset name
+
+Initial investment amount
+
+Expected annual return (%)
+
+Time horizon (years)
+
+Advanced Inputs
+
+Expense ratio (%)
+
+One‑time fee
+
+Dividend yield (%)
+
+Reinvestment (Y/N)
+
+Optional tax rate (future)
+
+Model (MVP)
+
+Deterministic annual compounding
+
+Net return = return − expense ratio
+
+3.3.2 Rental Property
+
+Basic Inputs
+
+Purchase price
+
+Down payment
+
+Mortgage interest rate
+
+Mortgage duration
+
+Monthly rental income
+
+Expected annual property appreciation (%)
+
+Advanced Inputs
+
+Maintenance cost (annual % or $)
+
+Insurance cost
+
+Property tax
+
+Vacancy rate
+
+Selling transaction cost (%)
+
+Model (MVP)
+
+Annual cash flow calculation
+
+Mortgage amortization
+
+Property value appreciation
+
+Equity = property value − remaining mortgage
+
+Total value = equity + cumulative net cash flow
+
+3.4 Editing & State Management
+
+Users can:
+
+Edit any investment at any time
+
+Collapse / expand investment cards
+
+Delete investments
+
+Changes trigger:
+
+Immediate recalculation
+
+Plot update (after “Create Plot” or automatically)
+
+3.5 Visualization
+Chart Features (MVP)
+
+Interactive line chart
+
+X‑axis: time (years)
+
+Y‑axis: asset value
+
+Different color per asset
+
+Legend with toggle visibility
+
+Hover tooltip showing:
+
+Asset name
+
+Year
+
+Value
+
+Controls
+
+Time horizon slider
+
+“Create / Update Plot” button
+
+4. Non‑Goals (Explicitly Out of Scope for MVP)
+
+Monte Carlo simulations
+
+Inflation‑adjusted modeling
+
+Tax‑optimized withdrawal modeling
+
+User accounts / login
+
+Real‑time market data
+
+(These may be Phase‑2 features.)
+
+5. Technical Architecture (AI‑Friendly)
+5.1 Frontend‑Only First
+
+Rationale
+
+No backend needed for MVP
+
+Easier validation
+
+Free hosting
+
+Tech Stack (Suggested)
+
+React (or Vue)
+
+TypeScript (recommended for clarity)
+
+Tailwind CSS for UI
+
+Charting:
+
+Recharts or Plotly.js
+
+5.2 Core Data Model
+Abstract Asset Interface
+InvestmentAsset
+  - id
+  - name
+  - type
+  - parameters
+  - computeValueOverTime(years): number[]
+Concrete Implementations
+
+SecurityAsset
+
+RentalPropertyAsset
+
+Each asset:
+
+Owns its validation logic
+
+Owns its return computation
+
+Exposes a uniform output for plotting
+
+5.3 Separation of Concerns
+
+UI components: input & display only
+
+Asset logic: pure functions / classes
+
+Chart engine: agnostic to asset internals
+
+This makes AI‑generated code:
+
+Easier to review
+
+Easier to test
+
+Easier to extend
+
+6. Hosting & Infrastructure
+Free Hosting Options
+
+GitHub Pages
+
+Vercel
+
+Netlify
+
+Persistence (Optional, Later)
+
+LocalStorage for scenarios
+
+No server dependency
+
+7. Validation Strategy (Important for AI‑Assisted Dev)
+
+Start with known scenarios:
+
+Simple compound interest
+
+Zero‑cost stock
+
+Zero‑growth property
+
+Cross‑check outputs manually
+
+Add basic unit tests for asset calculations
+
+The goal is trust through simplicity.
+
+8. Suggested Development Phases
+Phase 1 – Skeleton
+
+Basic UI
+
+One asset type (Security)
+
+Static chart
+
+Phase 2 – Core Value
+
+Rental property asset
+
+Editing & comparison
+
+Interactive chart
+
+Phase 3 – Polish
+
+Presets (e.g. S&P 500, typical rental)
+
+Tooltips & explanations
+
+UX refinements
+
+9. Success Criteria
+
+The project is successful if:
+
+A user can clearly see why
+
+High fees
+
+Leverage
+
+Work & complexity matter over decades
+
+The results match intuition and basic math
+
+The codebase is clean enough that an AI coder can extend it confidently
+
+10. Long‑Term Optional Extensions
+
+Monte Carlo simulation mode
+
+Inflation adjustment toggle
+
+Effort / stress proxy visualization
+
+Shareable scenario links
+
+Educational annotations
+
+End of Blueprint
