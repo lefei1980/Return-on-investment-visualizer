@@ -1,5 +1,13 @@
 # TODO
 
+## New Features (Completed)
+
+| # | Task | Status |
+|---|------|--------|
+| F1 | Author attribution & copyright (Fei Le) | Done |
+| F2 | Precious Metal asset class (gold, silver, platinum) | Done |
+| F3 | Chart toggle: Total Value vs Annualized Rate of Return | Done |
+
 ## Phase 3 — Polish
 
 | # | Task | Status |

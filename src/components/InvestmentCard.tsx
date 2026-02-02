@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import type { SecurityParams, RentalPropertyParams } from '../models/types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from '../models/types'
 import { SecurityForm } from './SecurityForm'
 import { RentalPropertyForm } from './RentalPropertyForm'
+import { PreciousMetalForm } from './PreciousMetalForm'
 
 interface SecurityCardProps {
   id: string
@@ -21,13 +22,22 @@ interface RentalCardProps {
   errors: Record<string, string>
 }
 
-type InvestmentCardProps = SecurityCardProps | RentalCardProps
+interface PreciousMetalCardProps {
+  id: string
+  type: 'precious-metal'
+  params: PreciousMetalParams
+  onChange: (params: PreciousMetalParams) => void
+  onDelete: () => void
+  errors: Record<string, string>
+}
+
+type InvestmentCardProps = SecurityCardProps | RentalCardProps | PreciousMetalCardProps
 
 export function InvestmentCard(props: InvestmentCardProps) {
   const { type, params, onDelete, errors } = props
   const [collapsed, setCollapsed] = useState(false)
 
-  const typeLabel = type === 'security' ? 'Security' : 'Rental Property'
+  const typeLabel = type === 'security' ? 'Security' : type === 'rental-property' ? 'Rental Property' : 'Precious Metal'
   const displayName = params.name || `Untitled ${typeLabel}`
 
   return (
@@ -69,10 +79,16 @@ export function InvestmentCard(props: InvestmentCardProps) {
               onChange={props.onChange as (params: SecurityParams) => void}
               errors={errors}
             />
-          ) : (
+          ) : type === 'rental-property' ? (
             <RentalPropertyForm
               params={props.params as RentalPropertyParams}
               onChange={props.onChange as (params: RentalPropertyParams) => void}
+              errors={errors}
+            />
+          ) : (
+            <PreciousMetalForm
+              params={props.params as PreciousMetalParams}
+              onChange={props.onChange as (params: PreciousMetalParams) => void}
               errors={errors}
             />
           )}

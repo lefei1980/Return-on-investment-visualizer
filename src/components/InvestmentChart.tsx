@@ -21,7 +21,10 @@ const COLORS = [
 interface ChartSeries {
   name: string
   values: number[]
+  initialInvestment: number
 }
+
+type ChartMode = 'total-value' | 'annualized-return'
 
 interface InvestmentChartProps {
   series: ChartSeries[]
@@ -34,9 +37,15 @@ function formatDollar(value: number): string {
   return `$${value.toFixed(0)}`
 }
 
+function formatPercent(value: number): string {
+  if (Math.abs(value) >= 1000) return `${(value / 1000).toFixed(1)}K%`
+  return `${value.toFixed(1)}%`
+}
+
 export function InvestmentChart({ series, years }: InvestmentChartProps) {
   const [displayYears, setDisplayYears] = useState(years)
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
+  const [chartMode, setChartMode] = useState<ChartMode>('total-value')
   const [legendPos, setLegendPos] = useState({ x: 95, y: 8 })
   const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null)
   const chartContainerRef = useRef<HTMLDivElement>(null)
@@ -98,14 +107,33 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
   }
 
   const effectiveYears = Math.min(displayYears, years)
+  const isAnnualized = chartMode === 'annualized-return'
+  const MAX_ANNUALIZED_RATE = 500 // Cap at 500% for display
 
   // Build chart data: [{year: 0, "Series A": 10000, "Series B": 5000}, ...]
   const data = []
-  for (let y = 0; y <= effectiveYears; y++) {
+  const startYear = isAnnualized ? 1 : 0 // Year 0 is undefined for annualized rate
+  for (let y = startYear; y <= effectiveYears; y++) {
     const point: Record<string, number> = { year: y }
     for (const s of series) {
       if (y < s.values.length) {
-        point[s.name] = Math.round(s.values[y] * 100) / 100
+        if (isAnnualized) {
+          if (s.initialInvestment <= 0) {
+            // Infinite leverage (e.g. zero down payment): clip to max
+            point[s.name] = s.values[y] > s.values[0] ? MAX_ANNUALIZED_RATE : -MAX_ANNUALIZED_RATE
+          } else {
+            const ratio = s.values[y] / s.initialInvestment
+            let annualizedRate: number
+            if (ratio <= 0) {
+              annualizedRate = -100 // Total loss
+            } else {
+              annualizedRate = (Math.pow(ratio, 1 / y) - 1) * 100
+            }
+            point[s.name] = Math.max(-100, Math.min(annualizedRate, MAX_ANNUALIZED_RATE))
+          }
+        } else {
+          point[s.name] = Math.round(s.values[y] * 100) / 100
+        }
       }
     }
     data.push(point)
@@ -115,8 +143,32 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
     <div className="bg-white rounded-lg border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-700">
-          Investment Value Over Time
+          {isAnnualized ? 'Annualized Rate of Return' : 'Investment Value Over Time'}
         </h3>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          <button
+            type="button"
+            onClick={() => setChartMode('total-value')}
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+              chartMode === 'total-value'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Total Value
+          </button>
+          <button
+            type="button"
+            onClick={() => setChartMode('annualized-return')}
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+              chartMode === 'annualized-return'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Annualized Return
+          </button>
+        </div>
       </div>
       <div className="relative" ref={chartContainerRef}>
         <ResponsiveContainer width="100%" height={400}>
@@ -128,13 +180,16 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              tickFormatter={formatDollar}
+              tickFormatter={isAnnualized ? formatPercent : formatDollar}
               tick={{ fontSize: 12 }}
               width={70}
             />
             <Tooltip
               formatter={(value: number | undefined) => {
                 if (value == null) return ''
+                if (isAnnualized) {
+                  return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
+                }
                 return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               }}
               labelFormatter={(label) => `Year ${label}`}

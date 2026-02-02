@@ -1,7 +1,7 @@
 export interface InvestmentAsset {
   id: string
   name: string
-  type: 'security' | 'rental-property'
+  type: 'security' | 'rental-property' | 'precious-metal'
   computeValueOverTime(years: number): number[]
 }
 
@@ -78,4 +78,25 @@ export const DEFAULT_RENTAL_PARAMS: RentalPropertyParams = {
   propertyTaxRate: 0.012,
   vacancyRate: 0.05,
   sellingCostPercent: 0.06,
+}
+
+export interface PreciousMetalParams {
+  /** Display name for this investment */
+  name: string
+  /** Initial investment amount in dollars (cost of purchasing the metal) */
+  initialInvestment: number
+  /** Expected nominal annual spot price increase as a decimal (e.g. 0.05 for 5%) */
+  annualPriceIncrease: number
+  /** Investment time horizon in years */
+  timeHorizon: number
+  /** Transaction/selling fee as a fraction of value (e.g. 0.02 for 2%) */
+  transactionFeePercent: number
+}
+
+export const DEFAULT_PRECIOUS_METAL_PARAMS: PreciousMetalParams = {
+  name: '',
+  initialInvestment: 10000,
+  annualPriceIncrease: 0.05,
+  timeHorizon: 30,
+  transactionFeePercent: 0.02,
 }

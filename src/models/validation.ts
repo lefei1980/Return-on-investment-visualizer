@@ -1,4 +1,4 @@
-import type { SecurityParams, RentalPropertyParams } from './types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from './types'
 
 export interface ValidationError {
   field: string
@@ -142,6 +142,41 @@ export function validateRentalParams(params: RentalPropertyParams): ValidationEr
 
   if (params.sellingCostPercent > 1) {
     errors.push({ field: 'sellingCostPercent', message: 'Selling cost cannot exceed 100%' })
+  }
+
+  return errors
+}
+
+/**
+ * Model-layer validation for Precious Metal parameters.
+ * Checks numeric bounds and domain constraints.
+ * Returns an array of errors (empty = valid).
+ */
+export function validatePreciousMetalParams(params: PreciousMetalParams): ValidationError[] {
+  const errors: ValidationError[] = []
+
+  if (params.initialInvestment < 0) {
+    errors.push({ field: 'initialInvestment', message: 'Initial investment must be non-negative' })
+  }
+
+  if (params.annualPriceIncrease < -1) {
+    errors.push({ field: 'annualPriceIncrease', message: 'Annual price increase cannot be less than -100%' })
+  }
+
+  if (params.timeHorizon <= 0) {
+    errors.push({ field: 'timeHorizon', message: 'Time horizon must be greater than 0' })
+  }
+
+  if (!Number.isInteger(params.timeHorizon)) {
+    errors.push({ field: 'timeHorizon', message: 'Time horizon must be a whole number' })
+  }
+
+  if (params.transactionFeePercent < 0) {
+    errors.push({ field: 'transactionFeePercent', message: 'Transaction fee must be non-negative' })
+  }
+
+  if (params.transactionFeePercent > 1) {
+    errors.push({ field: 'transactionFeePercent', message: 'Transaction fee cannot exceed 100%' })
   }
 
   return errors

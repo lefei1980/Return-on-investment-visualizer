@@ -4,10 +4,11 @@ import { InvestmentCard } from './components/InvestmentCard'
 import { InvestmentChart } from './components/InvestmentChart'
 import { computeSecurityValues } from './models/security'
 import { computeRentalValues } from './models/rental'
-import { validateSecurityParams, validateRentalParams } from './models/validation'
+import { computePreciousMetalValues } from './models/precious-metal'
+import { validateSecurityParams, validateRentalParams, validatePreciousMetalParams } from './models/validation'
 import { useDebounce } from './hooks/useDebounce'
-import type { SecurityParams, RentalPropertyParams } from './models/types'
-import { DEFAULT_SECURITY_PARAMS, DEFAULT_RENTAL_PARAMS } from './models/types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from './models/types'
+import { DEFAULT_SECURITY_PARAMS, DEFAULT_RENTAL_PARAMS, DEFAULT_PRECIOUS_METAL_PARAMS } from './models/types'
 
 interface SecurityEntry {
   id: string
@@ -21,9 +22,15 @@ interface RentalEntry {
   params: RentalPropertyParams
 }
 
-type InvestmentEntry = SecurityEntry | RentalEntry
+interface PreciousMetalEntry {
+  id: string
+  type: 'precious-metal'
+  params: PreciousMetalParams
+}
 
-type AssetType = 'security' | 'rental-property'
+type InvestmentEntry = SecurityEntry | RentalEntry | PreciousMetalEntry
+
+type AssetType = 'security' | 'rental-property' | 'precious-metal'
 
 let nextId = 1
 
@@ -35,6 +42,7 @@ function App() {
   const [investments, setInvestments] = useState<InvestmentEntry[]>([])
   const [securityCount, setSecurityCount] = useState(0)
   const [rentalCount, setRentalCount] = useState(0)
+  const [preciousMetalCount, setPreciousMetalCount] = useState(0)
   const [showTypeMenu, setShowTypeMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -70,7 +78,7 @@ function App() {
           },
         },
       ])
-    } else {
+    } else if (type === 'rental-property') {
       const count = rentalCount + 1
       setRentalCount(count)
       setInvestments(prev => [
@@ -84,11 +92,25 @@ function App() {
           },
         },
       ])
+    } else {
+      const count = preciousMetalCount + 1
+      setPreciousMetalCount(count)
+      setInvestments(prev => [
+        ...prev,
+        {
+          id,
+          type: 'precious-metal',
+          params: {
+            ...DEFAULT_PRECIOUS_METAL_PARAMS,
+            name: `Precious Metal #${count}`,
+          },
+        },
+      ])
     }
     setShowTypeMenu(false)
   }
 
-  function updateInvestment(id: string, params: SecurityParams | RentalPropertyParams) {
+  function updateInvestment(id: string, params: SecurityParams | RentalPropertyParams | PreciousMetalParams) {
     setInvestments(prev =>
       prev.map(inv => (inv.id === id ? { ...inv, params } as InvestmentEntry : inv))
     )
@@ -103,8 +125,10 @@ function App() {
     const validInvestments = debouncedInvestments.filter(inv => {
       if (inv.type === 'security') {
         return validateSecurityParams(inv.params).length === 0
-      } else {
+      } else if (inv.type === 'rental-property') {
         return validateRentalParams(inv.params).length === 0
+      } else {
+        return validatePreciousMetalParams(inv.params).length === 0
       }
     })
 
@@ -114,12 +138,22 @@ function App() {
     )
 
     const series = validInvestments.map(inv => {
-      const values = inv.type === 'security'
-        ? computeSecurityValues(inv.params, inv.params.timeHorizon)
-        : computeRentalValues(inv.params, inv.params.timeHorizon)
+      let values: number[]
+      let initialInvestment: number
+      if (inv.type === 'security') {
+        values = computeSecurityValues(inv.params, inv.params.timeHorizon)
+        initialInvestment = inv.params.initialInvestment
+      } else if (inv.type === 'rental-property') {
+        values = computeRentalValues(inv.params, inv.params.timeHorizon)
+        initialInvestment = inv.params.downPayment
+      } else {
+        values = computePreciousMetalValues(inv.params, inv.params.timeHorizon)
+        initialInvestment = inv.params.initialInvestment
+      }
       return {
         name: inv.params.name || 'Untitled',
         values,
+        initialInvestment,
       }
     })
 
@@ -139,9 +173,13 @@ function App() {
       if (!inv.params.initialInvestment && inv.params.initialInvestment !== 0) {
         errors.initialInvestment = 'Initial investment is required'
       }
-    } else {
+    } else if (inv.type === 'rental-property') {
       if (!inv.params.purchasePrice && inv.params.purchasePrice !== 0) {
         errors.purchasePrice = 'Purchase price is required'
+      }
+    } else {
+      if (!inv.params.initialInvestment && inv.params.initialInvestment !== 0) {
+        errors.initialInvestment = 'Initial investment is required'
       }
     }
     return errors
@@ -189,10 +227,17 @@ function App() {
                     </button>
                     <button
                       onClick={() => addInvestment('rental-property')}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100 cursor-pointer"
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-t border-gray-100 cursor-pointer"
                     >
                       <div className="font-medium text-gray-800">Rental Property</div>
                       <div className="text-xs text-gray-500">Residential rental real estate</div>
+                    </button>
+                    <button
+                      onClick={() => addInvestment('precious-metal')}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100 cursor-pointer"
+                    >
+                      <div className="font-medium text-gray-800">Precious Metal</div>
+                      <div className="text-xs text-gray-500">Gold, silver, platinum</div>
                     </button>
                   </div>
                 )}
@@ -225,7 +270,7 @@ function App() {
                       errors={uiErrors}
                     />
                   )
-                } else {
+                } else if (inv.type === 'rental-property') {
                   return (
                     <InvestmentCard
                       key={inv.id}
@@ -237,15 +282,35 @@ function App() {
                       errors={uiErrors}
                     />
                   )
+                } else {
+                  return (
+                    <InvestmentCard
+                      key={inv.id}
+                      id={inv.id}
+                      type="precious-metal"
+                      params={inv.params}
+                      onChange={params => updateInvestment(inv.id, params)}
+                      onDelete={() => deleteInvestment(inv.id)}
+                      errors={uiErrors}
+                    />
+                  )
                 }
               })}
             </div>
 
-            {/* Disclaimer */}
-            <p className="text-xs text-gray-400 text-center">
-              This is an educational tool, not financial advice. All models use
-              simplified, deterministic assumptions.
-            </p>
+            {/* Disclaimer & Credits */}
+            <div className="text-center space-y-1">
+              <p className="text-xs text-gray-400">
+                This is an educational tool, not financial advice. All models use
+                simplified, deterministic assumptions.
+              </p>
+              <p className="text-xs text-gray-500">
+                Designed and developed by Fei Le
+              </p>
+              <p className="text-xs text-gray-400">
+                &copy; 2026 Fei Le. All rights reserved.
+              </p>
+            </div>
           </div>
         )}
 
@@ -268,6 +333,13 @@ function App() {
                 >
                   <div className="font-medium text-gray-800">Rental Property</div>
                   <div className="text-xs text-gray-500">Residential rental real estate</div>
+                </button>
+                <button
+                  onClick={() => addInvestment('precious-metal')}
+                  className="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                >
+                  <div className="font-medium text-gray-800">Precious Metal</div>
+                  <div className="text-xs text-gray-500">Gold, silver, platinum</div>
                 </button>
               </div>
               <button

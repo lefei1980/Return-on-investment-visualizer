@@ -10,12 +10,15 @@ export function LandingPage({ onAddInvestment }: LandingPageProps) {
       </h1>
       <p className="text-lg text-gray-600 mb-6">
         Compare long-term outcomes of different investment types — stocks, funds,
-        and rental properties — through interactive charts. See how compounding,
-        costs, and leverage shape returns over decades.
+        rental properties, and precious metals — through interactive charts. See how
+        compounding, costs, and leverage shape returns over decades.
       </p>
-      <p className="text-sm text-gray-400 mb-8">
+      <p className="text-sm text-gray-400 mb-2">
         This is an educational tool, not financial advice. All models use
         simplified, deterministic assumptions.
+      </p>
+      <p className="text-sm text-gray-500 mb-8">
+        Designed and developed by Fei Le
       </p>
       <button
         onClick={onAddInvestment}
@@ -23,6 +26,9 @@ export function LandingPage({ onAddInvestment }: LandingPageProps) {
       >
         + Add an Investment
       </button>
+      <p className="mt-12 text-xs text-gray-400">
+        &copy; 2026 Fei Le. All rights reserved.
+      </p>
     </div>
   )
 }
