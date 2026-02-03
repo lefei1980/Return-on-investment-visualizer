@@ -18,6 +18,9 @@ const COLORS = [
   '#0891b2', // cyan
 ]
 
+const COMBINED_COLOR = '#374151' // dark gray
+const COMBINED_NAME = 'Combined Portfolio'
+
 interface ChartSeries {
   name: string
   values: number[]
@@ -46,6 +49,7 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
   const [displayYears, setDisplayYears] = useState(years)
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
   const [chartMode, setChartMode] = useState<ChartMode>('total-value')
+  const [showCombined, setShowCombined] = useState(false)
   const [legendPos, setLegendPos] = useState({ x: 95, y: 8 })
   const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null)
   const chartContainerRef = useRef<HTMLDivElement>(null)
@@ -110,6 +114,21 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
   const isAnnualized = chartMode === 'annualized-return'
   const MAX_ANNUALIZED_RATE = 500 // Cap at 500% for display
 
+  // Precompute combined series totals (sums all series; uses last known value for shorter series)
+  const combinedInitialInvestment = series.reduce((sum, s) => sum + s.initialInvestment, 0)
+
+  function getCombinedValueAtYear(y: number): number {
+    let total = 0
+    for (const s of series) {
+      if (y < s.values.length) {
+        total += s.values[y]
+      } else if (s.values.length > 0) {
+        total += s.values[s.values.length - 1]
+      }
+    }
+    return total
+  }
+
   // Build chart data: [{year: 0, "Series A": 10000, "Series B": 5000}, ...]
   const data = []
   const startYear = isAnnualized ? 1 : 0 // Year 0 is undefined for annualized rate
@@ -136,15 +155,50 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
         }
       }
     }
+
+    // Combined portfolio data point
+    if (showCombined && series.length > 0) {
+      const combinedValue = getCombinedValueAtYear(y)
+      if (isAnnualized) {
+        if (combinedInitialInvestment <= 0) {
+          point[COMBINED_NAME] = combinedValue > getCombinedValueAtYear(0) ? MAX_ANNUALIZED_RATE : -MAX_ANNUALIZED_RATE
+        } else {
+          const ratio = combinedValue / combinedInitialInvestment
+          let annualizedRate: number
+          if (ratio <= 0) {
+            annualizedRate = -100
+          } else {
+            annualizedRate = (Math.pow(ratio, 1 / y) - 1) * 100
+          }
+          point[COMBINED_NAME] = Math.max(-100, Math.min(annualizedRate, MAX_ANNUALIZED_RATE))
+        }
+      } else {
+        point[COMBINED_NAME] = Math.round(combinedValue * 100) / 100
+      }
+    }
+
     data.push(point)
   }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-700">
-          {isAnnualized ? 'Annualized Rate of Return' : 'Investment Value Over Time'}
-        </h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-sm font-medium text-gray-700">
+            {isAnnualized ? 'Annualized Rate of Return' : 'Investment Value Over Time'}
+          </h3>
+          {series.length > 1 && (
+            <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showCombined}
+                onChange={e => setShowCombined(e.target.checked)}
+                className="rounded border-gray-300 text-gray-700 focus:ring-gray-500"
+              />
+              Combined
+            </label>
+          )}
+        </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             type="button"
@@ -206,6 +260,19 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
                 hide={hiddenSeries.has(s.name)}
               />
             ))}
+            {showCombined && series.length > 1 && (
+              <Line
+                key={COMBINED_NAME}
+                type="monotone"
+                dataKey={COMBINED_NAME}
+                stroke={COMBINED_COLOR}
+                strokeWidth={3}
+                strokeDasharray="6 3"
+                dot={false}
+                activeDot={{ r: 4 }}
+                hide={hiddenSeries.has(COMBINED_NAME)}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
 
@@ -230,6 +297,20 @@ export function InvestmentChart({ series, years }: InvestmentChartProps) {
               <span className="text-gray-700">{s.name}</span>
             </button>
           ))}
+          {showCombined && series.length > 1 && (
+            <button
+              type="button"
+              onClick={() => toggleSeries(COMBINED_NAME)}
+              className="flex items-center gap-1.5 text-xs py-0.5 cursor-pointer border-t border-gray-200 mt-0.5 pt-1"
+              style={{ opacity: hiddenSeries.has(COMBINED_NAME) ? 0.4 : 1 }}
+            >
+              <span
+                className="inline-block w-3 rounded"
+                style={{ backgroundColor: COMBINED_COLOR, height: '2px', borderTop: `1px dashed ${COMBINED_COLOR}` }}
+              />
+              <span className="text-gray-700 font-medium">{COMBINED_NAME}</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -5,10 +5,11 @@ import { InvestmentChart } from './components/InvestmentChart'
 import { computeSecurityValues } from './models/security'
 import { computeRentalValues } from './models/rental'
 import { computePreciousMetalValues } from './models/precious-metal'
-import { validateSecurityParams, validateRentalParams, validatePreciousMetalParams } from './models/validation'
+import { computeFixedIncomeValues } from './models/fixed-income'
+import { validateSecurityParams, validateRentalParams, validatePreciousMetalParams, validateFixedIncomeParams } from './models/validation'
 import { useDebounce } from './hooks/useDebounce'
-import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from './models/types'
-import { DEFAULT_SECURITY_PARAMS, DEFAULT_RENTAL_PARAMS, DEFAULT_PRECIOUS_METAL_PARAMS } from './models/types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams, FixedIncomeParams } from './models/types'
+import { DEFAULT_SECURITY_PARAMS, DEFAULT_RENTAL_PARAMS, DEFAULT_PRECIOUS_METAL_PARAMS, DEFAULT_FIXED_INCOME_PARAMS } from './models/types'
 
 interface SecurityEntry {
   id: string
@@ -28,9 +29,15 @@ interface PreciousMetalEntry {
   params: PreciousMetalParams
 }
 
-type InvestmentEntry = SecurityEntry | RentalEntry | PreciousMetalEntry
+interface FixedIncomeEntry {
+  id: string
+  type: 'fixed-income'
+  params: FixedIncomeParams
+}
 
-type AssetType = 'security' | 'rental-property' | 'precious-metal'
+type InvestmentEntry = SecurityEntry | RentalEntry | PreciousMetalEntry | FixedIncomeEntry
+
+type AssetType = 'security' | 'rental-property' | 'precious-metal' | 'fixed-income'
 
 let nextId = 1
 
@@ -43,6 +50,7 @@ function App() {
   const [securityCount, setSecurityCount] = useState(0)
   const [rentalCount, setRentalCount] = useState(0)
   const [preciousMetalCount, setPreciousMetalCount] = useState(0)
+  const [fixedIncomeCount, setFixedIncomeCount] = useState(0)
   const [showTypeMenu, setShowTypeMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -92,7 +100,7 @@ function App() {
           },
         },
       ])
-    } else {
+    } else if (type === 'precious-metal') {
       const count = preciousMetalCount + 1
       setPreciousMetalCount(count)
       setInvestments(prev => [
@@ -106,11 +114,25 @@ function App() {
           },
         },
       ])
+    } else {
+      const count = fixedIncomeCount + 1
+      setFixedIncomeCount(count)
+      setInvestments(prev => [
+        ...prev,
+        {
+          id,
+          type: 'fixed-income',
+          params: {
+            ...DEFAULT_FIXED_INCOME_PARAMS,
+            name: `Fixed Income #${count}`,
+          },
+        },
+      ])
     }
     setShowTypeMenu(false)
   }
 
-  function updateInvestment(id: string, params: SecurityParams | RentalPropertyParams | PreciousMetalParams) {
+  function updateInvestment(id: string, params: SecurityParams | RentalPropertyParams | PreciousMetalParams | FixedIncomeParams) {
     setInvestments(prev =>
       prev.map(inv => (inv.id === id ? { ...inv, params } as InvestmentEntry : inv))
     )
@@ -127,8 +149,10 @@ function App() {
         return validateSecurityParams(inv.params).length === 0
       } else if (inv.type === 'rental-property') {
         return validateRentalParams(inv.params).length === 0
-      } else {
+      } else if (inv.type === 'precious-metal') {
         return validatePreciousMetalParams(inv.params).length === 0
+      } else {
+        return validateFixedIncomeParams(inv.params).length === 0
       }
     })
 
@@ -146,9 +170,12 @@ function App() {
       } else if (inv.type === 'rental-property') {
         values = computeRentalValues(inv.params, inv.params.timeHorizon)
         initialInvestment = inv.params.downPayment
-      } else {
+      } else if (inv.type === 'precious-metal') {
         values = computePreciousMetalValues(inv.params, inv.params.timeHorizon)
         initialInvestment = inv.params.initialInvestment
+      } else {
+        values = computeFixedIncomeValues(inv.params, inv.params.timeHorizon)
+        initialInvestment = inv.params.principal
       }
       return {
         name: inv.params.name || 'Untitled',
@@ -177,9 +204,13 @@ function App() {
       if (!inv.params.purchasePrice && inv.params.purchasePrice !== 0) {
         errors.purchasePrice = 'Purchase price is required'
       }
-    } else {
+    } else if (inv.type === 'precious-metal') {
       if (!inv.params.initialInvestment && inv.params.initialInvestment !== 0) {
         errors.initialInvestment = 'Initial investment is required'
+      }
+    } else {
+      if (!inv.params.principal && inv.params.principal !== 0) {
+        errors.principal = 'Principal is required'
       }
     }
     return errors
@@ -234,10 +265,17 @@ function App() {
                     </button>
                     <button
                       onClick={() => addInvestment('precious-metal')}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100 cursor-pointer"
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-t border-gray-100 cursor-pointer"
                     >
                       <div className="font-medium text-gray-800">Precious Metal</div>
                       <div className="text-xs text-gray-500">Gold, silver, platinum</div>
+                    </button>
+                    <button
+                      onClick={() => addInvestment('fixed-income')}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100 cursor-pointer"
+                    >
+                      <div className="font-medium text-gray-800">Fixed Income</div>
+                      <div className="text-xs text-gray-500">Treasury bills, notes, CDs</div>
                     </button>
                   </div>
                 )}
@@ -282,12 +320,24 @@ function App() {
                       errors={uiErrors}
                     />
                   )
-                } else {
+                } else if (inv.type === 'precious-metal') {
                   return (
                     <InvestmentCard
                       key={inv.id}
                       id={inv.id}
                       type="precious-metal"
+                      params={inv.params}
+                      onChange={params => updateInvestment(inv.id, params)}
+                      onDelete={() => deleteInvestment(inv.id)}
+                      errors={uiErrors}
+                    />
+                  )
+                } else {
+                  return (
+                    <InvestmentCard
+                      key={inv.id}
+                      id={inv.id}
+                      type="fixed-income"
                       params={inv.params}
                       onChange={params => updateInvestment(inv.id, params)}
                       onDelete={() => deleteInvestment(inv.id)}
@@ -340,6 +390,13 @@ function App() {
                 >
                   <div className="font-medium text-gray-800">Precious Metal</div>
                   <div className="text-xs text-gray-500">Gold, silver, platinum</div>
+                </button>
+                <button
+                  onClick={() => addInvestment('fixed-income')}
+                  className="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                >
+                  <div className="font-medium text-gray-800">Fixed Income</div>
+                  <div className="text-xs text-gray-500">Treasury bills, notes, CDs</div>
                 </button>
               </div>
               <button

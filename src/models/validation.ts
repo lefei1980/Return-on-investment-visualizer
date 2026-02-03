@@ -1,4 +1,4 @@
-import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from './types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams, FixedIncomeParams } from './types'
 
 export interface ValidationError {
   field: string
@@ -177,6 +177,41 @@ export function validatePreciousMetalParams(params: PreciousMetalParams): Valida
 
   if (params.transactionFeePercent > 1) {
     errors.push({ field: 'transactionFeePercent', message: 'Transaction fee cannot exceed 100%' })
+  }
+
+  return errors
+}
+
+/**
+ * Model-layer validation for Fixed Income parameters.
+ * Checks numeric bounds and domain constraints.
+ * Returns an array of errors (empty = valid).
+ */
+export function validateFixedIncomeParams(params: FixedIncomeParams): ValidationError[] {
+  const errors: ValidationError[] = []
+
+  if (params.principal < 0) {
+    errors.push({ field: 'principal', message: 'Principal must be non-negative' })
+  }
+
+  if (params.annualYield < -1) {
+    errors.push({ field: 'annualYield', message: 'Annual yield cannot be less than -100%' })
+  }
+
+  if (params.maturityYears <= 0) {
+    errors.push({ field: 'maturityYears', message: 'Maturity must be greater than 0' })
+  }
+
+  if (!Number.isInteger(params.maturityYears)) {
+    errors.push({ field: 'maturityYears', message: 'Maturity must be a whole number' })
+  }
+
+  if (params.timeHorizon <= 0) {
+    errors.push({ field: 'timeHorizon', message: 'Time horizon must be greater than 0' })
+  }
+
+  if (!Number.isInteger(params.timeHorizon)) {
+    errors.push({ field: 'timeHorizon', message: 'Time horizon must be a whole number' })
   }
 
   return errors

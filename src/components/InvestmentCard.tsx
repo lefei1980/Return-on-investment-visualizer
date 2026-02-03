@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import type { SecurityParams, RentalPropertyParams, PreciousMetalParams } from '../models/types'
+import type { SecurityParams, RentalPropertyParams, PreciousMetalParams, FixedIncomeParams } from '../models/types'
 import { SecurityForm } from './SecurityForm'
 import { RentalPropertyForm } from './RentalPropertyForm'
 import { PreciousMetalForm } from './PreciousMetalForm'
+import { FixedIncomeForm } from './FixedIncomeForm'
 
 interface SecurityCardProps {
   id: string
@@ -31,13 +32,22 @@ interface PreciousMetalCardProps {
   errors: Record<string, string>
 }
 
-type InvestmentCardProps = SecurityCardProps | RentalCardProps | PreciousMetalCardProps
+interface FixedIncomeCardProps {
+  id: string
+  type: 'fixed-income'
+  params: FixedIncomeParams
+  onChange: (params: FixedIncomeParams) => void
+  onDelete: () => void
+  errors: Record<string, string>
+}
+
+type InvestmentCardProps = SecurityCardProps | RentalCardProps | PreciousMetalCardProps | FixedIncomeCardProps
 
 export function InvestmentCard(props: InvestmentCardProps) {
   const { type, params, onDelete, errors } = props
   const [collapsed, setCollapsed] = useState(false)
 
-  const typeLabel = type === 'security' ? 'Security' : type === 'rental-property' ? 'Rental Property' : 'Precious Metal'
+  const typeLabel = type === 'security' ? 'Security' : type === 'rental-property' ? 'Rental Property' : type === 'precious-metal' ? 'Precious Metal' : 'Fixed Income'
   const displayName = params.name || `Untitled ${typeLabel}`
 
   return (
@@ -85,10 +95,16 @@ export function InvestmentCard(props: InvestmentCardProps) {
               onChange={props.onChange as (params: RentalPropertyParams) => void}
               errors={errors}
             />
-          ) : (
+          ) : type === 'precious-metal' ? (
             <PreciousMetalForm
               params={props.params as PreciousMetalParams}
               onChange={props.onChange as (params: PreciousMetalParams) => void}
+              errors={errors}
+            />
+          ) : (
+            <FixedIncomeForm
+              params={props.params as FixedIncomeParams}
+              onChange={props.onChange as (params: FixedIncomeParams) => void}
               errors={errors}
             />
           )}

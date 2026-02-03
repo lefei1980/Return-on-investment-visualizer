@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-ROI Visualizer — frontend-only tool comparing long-term outcomes of stocks/funds, rental properties, and precious metals via interactive charts. See `project-description.txt` for full blueprint.
+ROI Visualizer — frontend-only tool comparing long-term outcomes of stocks/funds, rental properties, precious metals, and fixed-income instruments via interactive charts. See `project-description.txt` for full blueprint.
 
 ## Stack
 
@@ -10,9 +10,9 @@ React + TypeScript, Vite, Tailwind CSS, Recharts, Vitest
 
 ```
 src/
-  models/   types.ts | security.ts | rental.ts | precious-metal.ts | validation.ts | *.test.ts
+  models/   types.ts | security.ts | rental.ts | precious-metal.ts | fixed-income.ts | validation.ts | *.test.ts
   components/   LandingPage | InvestmentCard | SecurityForm | RentalPropertyForm
-                PreciousMetalForm | FormComponents | InvestmentChart
+                PreciousMetalForm | FixedIncomeForm | FormComponents | InvestmentChart
   hooks/    useDebounce.ts
   App.tsx
 ```
@@ -25,6 +25,7 @@ src/
 - **Chart updates**: debounced (300ms), never on every keystroke.
 - **Rental MVP assumptions** (documented in `rental.ts`): annualized mortgage payments, constant rental income, no refinancing/taxes/deductions.
 - **Precious metal MVP assumptions** (documented in `precious-metal.ts`): constant annual price increase, no storage/insurance costs, transaction fee on selling only.
+- **Fixed income MVP assumptions** (documented in `fixed-income.ts`): constant yield (no rate changes at reinvestment), no early withdrawal penalties, no taxes or fees.
 
 ## Current Focus
 

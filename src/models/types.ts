@@ -1,7 +1,7 @@
 export interface InvestmentAsset {
   id: string
   name: string
-  type: 'security' | 'rental-property' | 'precious-metal'
+  type: 'security' | 'rental-property' | 'precious-metal' | 'fixed-income'
   computeValueOverTime(years: number): number[]
 }
 
@@ -99,4 +99,31 @@ export const DEFAULT_PRECIOUS_METAL_PARAMS: PreciousMetalParams = {
   annualPriceIncrease: 0.05,
   timeHorizon: 30,
   transactionFeePercent: 0.02,
+}
+
+export interface FixedIncomeParams {
+  /** Display name for this investment */
+  name: string
+  /** Principal amount in dollars */
+  principal: number
+  /** Annual yield as a decimal (e.g. 0.05 for 5%) */
+  annualYield: number
+  /** Maturity period in years */
+  maturityYears: number
+  /** Interest compounding method */
+  compoundingMethod: 'simple' | 'annual'
+  /** Whether to reinvest principal + interest at maturity */
+  reinvestAtMaturity: boolean
+  /** Investment time horizon in years (projection length) */
+  timeHorizon: number
+}
+
+export const DEFAULT_FIXED_INCOME_PARAMS: FixedIncomeParams = {
+  name: '',
+  principal: 10000,
+  annualYield: 0.05,
+  maturityYears: 5,
+  compoundingMethod: 'annual',
+  reinvestAtMaturity: true,
+  timeHorizon: 30,
 }

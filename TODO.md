@@ -1,12 +1,14 @@
 # TODO
 
-## New Features (Completed)
+## New Features
 
 | # | Task | Status |
 |---|------|--------|
 | F1 | Author attribution & copyright (Fei Le) | Done |
 | F2 | Precious Metal asset class (gold, silver, platinum) | Done |
 | F3 | Chart toggle: Total Value vs Annualized Rate of Return | Done |
+| F4 | Fixed Income asset class (treasury bills, notes, CDs) | Done |
+| F5 | Combined portfolio curve toggle on chart | Done |
 
 ## Phase 3 — Polish
 
