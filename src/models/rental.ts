@@ -6,7 +6,7 @@ import type { InvestmentAsset, RentalPropertyParams } from './types'
  * MVP Assumptions (documented per CLAUDE.md):
  * - Annualized mortgage payments: monthly payment computed via standard
  *   amortization formula, then multiplied by 12 for annual cost.
- * - Constant rental income: monthly rent does not grow over time.
+ * - Rental income and insurance scale with property value (percentage-based).
  * - No refinancing, income taxes, or tax deductions.
  *
  * Total value each year = equity + cumulative net cash flow
@@ -19,10 +19,10 @@ export function computeRentalValues(params: RentalPropertyParams, years: number)
     downPayment,
     mortgageRate,
     mortgageDuration,
-    monthlyRentalIncome,
+    monthlyRentalPercent,
     annualAppreciation,
     maintenanceCostPercent,
-    insuranceCost,
+    annualInsuranceCostPercent,
     propertyTaxRate,
     vacancyRate,
     sellingCostPercent,
@@ -76,10 +76,11 @@ export function computeRentalValues(params: RentalPropertyParams, years: number)
     // Annual expenses based on current property value
     const maintenance = propertyValue * maintenanceCostPercent
     const propertyTax = propertyValue * propertyTaxRate
-    const totalExpenses = maintenance + insuranceCost + propertyTax
+    const insurance = propertyValue * annualInsuranceCostPercent
+    const totalExpenses = maintenance + insurance + propertyTax
 
     // Effective rental income adjusted for vacancy
-    const effectiveRentalIncome = monthlyRentalIncome * 12 * (1 - vacancyRate)
+    const effectiveRentalIncome = propertyValue * monthlyRentalPercent * 12 * (1 - vacancyRate)
 
     // Net cash flow = income - mortgage payment - expenses
     const netCashFlow = effectiveRentalIncome - mortgagePaymentThisYear - totalExpenses

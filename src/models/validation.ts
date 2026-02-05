@@ -92,8 +92,12 @@ export function validateRentalParams(params: RentalPropertyParams): ValidationEr
     errors.push({ field: 'mortgageDuration', message: 'Mortgage duration must be a whole number' })
   }
 
-  if (params.monthlyRentalIncome < 0) {
-    errors.push({ field: 'monthlyRentalIncome', message: 'Monthly rental income must be non-negative' })
+  if (params.monthlyRentalPercent < 0) {
+    errors.push({ field: 'monthlyRentalPercent', message: 'Monthly rental percent must be non-negative' })
+  }
+
+  if (params.monthlyRentalPercent > 1) {
+    errors.push({ field: 'monthlyRentalPercent', message: 'Monthly rental percent cannot exceed 100%' })
   }
 
   if (params.annualAppreciation < -1) {
@@ -116,8 +120,12 @@ export function validateRentalParams(params: RentalPropertyParams): ValidationEr
     errors.push({ field: 'maintenanceCostPercent', message: 'Maintenance cost cannot exceed 100%' })
   }
 
-  if (params.insuranceCost < 0) {
-    errors.push({ field: 'insuranceCost', message: 'Insurance cost must be non-negative' })
+  if (params.annualInsuranceCostPercent < 0) {
+    errors.push({ field: 'annualInsuranceCostPercent', message: 'Insurance cost percent must be non-negative' })
+  }
+
+  if (params.annualInsuranceCostPercent > 1) {
+    errors.push({ field: 'annualInsuranceCostPercent', message: 'Insurance cost percent cannot exceed 100%' })
   }
 
   if (params.propertyTaxRate < 0) {

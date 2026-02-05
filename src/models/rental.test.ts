@@ -9,11 +9,11 @@ const baseParams: RentalPropertyParams = {
   downPayment: 60000,
   mortgageRate: 0.06,
   mortgageDuration: 30,
-  monthlyRentalIncome: 2000,
+  monthlyRentalPercent: 0.01,
   annualAppreciation: 0.03,
   timeHorizon: 30,
   maintenanceCostPercent: 0,
-  insuranceCost: 0,
+  annualInsuranceCostPercent: 0,
   propertyTaxRate: 0,
   vacancyRate: 0,
   sellingCostPercent: 0,
@@ -41,7 +41,7 @@ describe('computeRentalValues', () => {
       ...baseParams,
       annualAppreciation: 0,
       mortgageRate: 0,
-      monthlyRentalIncome: 0,
+      monthlyRentalPercent: 0,
     }
     // With zero appreciation, zero rent, zero rate:
     // mortgage amount = 240000, annual payment = 240000/30 = 8000
@@ -62,7 +62,7 @@ describe('computeRentalValues', () => {
     const params: RentalPropertyParams = {
       ...baseParams,
       annualAppreciation: 0,
-      monthlyRentalIncome: 0,
+      monthlyRentalPercent: 0,
       mortgageRate: 0.06,
       mortgageDuration: 30,
       sellingCostPercent: 0,
@@ -92,9 +92,9 @@ describe('computeRentalValues', () => {
   it('handles zero rental income (pure equity play)', () => {
     const params: RentalPropertyParams = {
       ...baseParams,
-      monthlyRentalIncome: 0,
+      monthlyRentalPercent: 0,
       maintenanceCostPercent: 0,
-      insuranceCost: 0,
+      annualInsuranceCostPercent: 0,
       propertyTaxRate: 0,
     }
     const values = computeRentalValues(params, 1)
@@ -135,7 +135,7 @@ describe('computeRentalValues', () => {
       ...baseParams,
       annualAppreciation: 0.05,
       mortgageRate: 0,
-      monthlyRentalIncome: 0,
+      monthlyRentalPercent: 0,
     }
     const values = computeRentalValues(params, 5)
     // With appreciation and no costs, values should increase
@@ -154,9 +154,10 @@ describe('computeRentalValues', () => {
     // Year 0 = 300000 (down payment = full purchase)
     expect(values[0]).toBe(300000)
     // Year 1: property = 300000 * 1.03 = 309000, no mortgage, no expenses
-    // Equity = 309000, cash flow = 2000*12 = 24000
-    // Total = 309000 + 24000 = 333000
-    expect(values[1]).toBeCloseTo(333000, 0)
+    // Rental income = 309000 * 0.01 * 12 = 37080
+    // Equity = 309000, cash flow = 37080
+    // Total = 309000 + 37080 = 346080
+    expect(values[1]).toBeCloseTo(346080, 0)
   })
 })
 

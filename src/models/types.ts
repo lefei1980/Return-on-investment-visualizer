@@ -46,16 +46,16 @@ export interface RentalPropertyParams {
   mortgageRate: number
   /** Mortgage term in years */
   mortgageDuration: number
-  /** Monthly rental income in dollars */
-  monthlyRentalIncome: number
+  /** Monthly rental income as a fraction of property value (e.g. 0.01 for 1%) */
+  monthlyRentalPercent: number
   /** Expected annual property value appreciation as a decimal (e.g. 0.03 for 3%) */
   annualAppreciation: number
   /** Investment time horizon in years */
   timeHorizon: number
   /** Annual maintenance cost as a fraction of property value (e.g. 0.01 for 1%) */
   maintenanceCostPercent: number
-  /** Annual insurance cost in dollars */
-  insuranceCost: number
+  /** Annual insurance cost as a fraction of property value (e.g. 0.01 for 1%) */
+  annualInsuranceCostPercent: number
   /** Annual property tax as a fraction of property value (e.g. 0.012 for 1.2%) */
   propertyTaxRate: number
   /** Fraction of time property is vacant (e.g. 0.05 for 5%) */
@@ -70,11 +70,11 @@ export const DEFAULT_RENTAL_PARAMS: RentalPropertyParams = {
   downPayment: 60000,
   mortgageRate: 0.065,
   mortgageDuration: 30,
-  monthlyRentalIncome: 2000,
+  monthlyRentalPercent: 0.01,
   annualAppreciation: 0.03,
   timeHorizon: 30,
   maintenanceCostPercent: 0.01,
-  insuranceCost: 1500,
+  annualInsuranceCostPercent: 0.01,
   propertyTaxRate: 0.012,
   vacancyRate: 0.05,
   sellingCostPercent: 0.06,

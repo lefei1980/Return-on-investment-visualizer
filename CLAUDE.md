@@ -23,7 +23,7 @@ src/
 - **Deterministic models**: pure functions, no randomness. Models have zero React dependencies.
 - **Validation split**: model layer = numeric bounds; UI layer = required-field checks.
 - **Chart updates**: debounced (300ms), never on every keystroke.
-- **Rental MVP assumptions** (documented in `rental.ts`): annualized mortgage payments, constant rental income, no refinancing/taxes/deductions.
+- **Rental MVP assumptions** (documented in `rental.ts`): annualized mortgage payments, rental income and insurance scale with property value (percentage-based), no refinancing/taxes/deductions.
 - **Precious metal MVP assumptions** (documented in `precious-metal.ts`): constant annual price increase, no storage/insurance costs, transaction fee on selling only.
 - **Fixed income MVP assumptions** (documented in `fixed-income.ts`): constant yield (no rate changes at reinvestment), no early withdrawal penalties, no taxes or fees.
 

@@ -99,16 +99,14 @@ export function RentalPropertyForm({ params, onChange, errors }: RentalPropertyF
         </Field>
 
         <Field
-          label="Monthly Rental Income ($)"
-          error={allErrors.monthlyRentalIncome}
-          tooltip="Expected monthly rent collected from tenants"
+          label="Monthly Rental Income (% of property value)"
+          error={allErrors.monthlyRentalPercent}
+          tooltip="Monthly rent as a percentage of current property value. E.g. 1% of a $300k property = $3,000/mo"
         >
-          <input
-            type="number"
-            value={params.monthlyRentalIncome}
-            onChange={e => update({ monthlyRentalIncome: parseFloat(e.target.value) || 0 })}
-            min={0}
-            step={100}
+          <PercentInput
+            value={params.monthlyRentalPercent}
+            onChange={v => update({ monthlyRentalPercent: v })}
+            step={0.1}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </Field>
@@ -122,6 +120,20 @@ export function RentalPropertyForm({ params, onChange, errors }: RentalPropertyF
             value={params.annualAppreciation}
             onChange={v => update({ annualAppreciation: v })}
             step={0.5}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Field>
+
+        <Field
+          label="Annual Insurance Cost (% of property value)"
+          error={allErrors.annualInsuranceCostPercent}
+          tooltip="Annual property insurance as a percentage of property value. Typical: 0.5-1%"
+        >
+          <PercentInput
+            value={params.annualInsuranceCostPercent}
+            onChange={v => update({ annualInsuranceCostPercent: v })}
+            min={0}
+            step={0.1}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </Field>
@@ -165,21 +177,6 @@ export function RentalPropertyForm({ params, onChange, errors }: RentalPropertyF
               onChange={v => update({ maintenanceCostPercent: v })}
               min={0}
               step={0.1}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </Field>
-
-          <Field
-            label="Insurance Cost ($/year)"
-            error={allErrors.insuranceCost}
-            tooltip="Annual property insurance premium"
-          >
-            <input
-              type="number"
-              value={params.insuranceCost}
-              onChange={e => update({ insuranceCost: parseFloat(e.target.value) || 0 })}
-              min={0}
-              step={100}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </Field>
